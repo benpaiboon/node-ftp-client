@@ -16,39 +16,65 @@ function getTodayFolder() {
   return todayFolder;
 }
 
-function readCSV() {
+// Get list of files
+function getFileName() {
   const fs = require('fs');
-  const csv = require('fast-csv');
   const ftpFolder = require('./config/ftp.folder.json');
-  const todayFolder = getTodayFolder();
-  const filePath = `./${ftpFolder.localDownloadDir}/${todayFolder}/`;
+  let todayFolder = getTodayFolder();
+  let csvPath = `./${ftpFolder.localDownloadDir}/${todayFolder}/`;
+  let fileArr = []
 
-  try {
-    fs.readdirSync(filePath).forEach(file => {
-      // console.log(file);
-      let fullPath = `${filePath}${file}`;
-      let stream = fs.createReadStream(fullPath);
-      // read csv
-      csv
-        .fromStream(stream, { headers: false })
-        .on("data", function (data) {
-          console.log(data);
-        })
-        .on("end", function () {
-          console.log("done");
-        });
-    });
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      console.log('Directory not found!');
-    } else {
-      throw err;
-    }
-  }
+  fs.readdirSync(csvPath).forEach(file => {
+    // console.log(file);
+    fileArr.push(file);
+  });
+
+  return fileArr;
 }
 
-// Init FTP function for download files from Server
-async function downloadFilesFromFTP() {
+// insert read csv file & insert to cash table
+function insertToCashTable() {
+  const csv = require('csvtojson');
+  const ftpFolder = require('./config/ftp.folder.json');
+  let todayFolder = getTodayFolder();
+  let cashFileName = getFileName();
+  let fullCashFilePath = `./${ftpFolder.localDownloadDir}/${todayFolder}/${cashFileName[0]}`;
+
+  csv().fromFile(fullCashFilePath).then(csvData => {
+    const mysql = require('mysql');
+    const mySqlConfig = require('./config/mysql.json');
+    const crypto = require('crypto');
+
+    const connection = mysql.createConnection(mySqlConfig);
+    connection.connect(function (err) {
+      if (err) console.error('error connecting: ' + err.stack);
+      // connect db success
+      else {
+        for (let i = 0; i < csvData.length; i++) {
+          // console.log(csvData);
+          // console.log(csvData[i]['Title']);
+          let randomStr = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+          let id = crypto.createHash('md5').update(randomStr).digest("hex");
+
+          const cashTable = `fact_privatefund_cash`;
+          const cashDbField = 'cash_id,cash_date,cash_port_id,title,cash_market_value,cash_proportion_pct';
+          let sql = `INSERT INTO ${cashTable} (${cashDbField}) VALUES ('${id}', '${csvData[i]['Date']}', '${csvData[i]['PortID']}', '${csvData[i]['Title']}', '${csvData[i]['Market Value']}', '${csvData[i]['Proportion Pct']}')`;
+
+          connection.query(sql, function (err) {
+            if (err) throw err;
+            // insert success
+            console.log(`1 record inserted in ${cashTable}`);
+          });
+        }
+        connection.end();
+      }
+    });
+  });
+}
+
+// 1. Download csv files from FTP server.
+// 2. read all csv files & insert data to database
+async function runFullLoop() {
   // Init Basic FTP Dependency
   const ftp = require("basic-ftp");
   const ftpConfig = require('./config/ftp.json');
@@ -68,13 +94,17 @@ async function downloadFilesFromFTP() {
     client.trackProgress(info => {
       console.log(`File: ${info.name}`);
       console.log(`Transferred: ${info.bytes} bytes`);
-      console.log(`Transferred Overall: ${info.bytesOverall} bytes`);
-      console.log('');
+      console.log(`Transferred Overall: ${info.bytesOverall} bytes \n`);
+      // console.log('');
     });
 
     // Download all files from remote dir to local dir
     await client.downloadDir(`${ftpFolder.localDownloadDir}/${todayFolder}/`);
     client.trackProgress();
+
+    // insert csv data to db
+    console.log(`=========================================== \n`);
+    insertToCashTable();
 
   }
   catch (err) {
@@ -88,6 +118,4 @@ async function downloadFilesFromFTP() {
 }
 
 // Fired function
-downloadFilesFromFTP();
-
-// readCSV();
+runFullLoop();
