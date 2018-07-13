@@ -19,6 +19,7 @@
   "homepage": "https://github.com/benpaiboon/node-ftp-client#readme",
   "dependencies": {
     "basic-ftp": "^2.13.2",
-    "fast-csv": "^2.4.1"
+    "csvtojson": "^2.0.6",
+    "mysql": "github:mysqljs/mysql"
   }
 }
