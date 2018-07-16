@@ -12,7 +12,7 @@ function getTodayFolder() {
   }
 
   let dateSyntax = `${yyyy}${mm}${dd}`;
-  let todayFolder = dateSyntax - 1;
+  let todayFolder = dateSyntax - 3;
   return todayFolder;
 }
 
