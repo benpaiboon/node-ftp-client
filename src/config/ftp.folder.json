@@ -1,4 +1,4 @@
 {
   "remoteDir": "setscope",
-  "localDownloadDir": "src/download/csv"
+  "localDownloadDir": "var/www/html/setscope-include/partner/mps/mpai/csv"
 }

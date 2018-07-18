@@ -50,6 +50,9 @@ function insertToCashTable() {
       if (err) console.error('error connecting: ' + err.stack);
       // connect db success
       else {
+        let delCashRow = `DELETE FROM fact_privatefund_cash WHERE cash_date='${todayFolder}'`;
+        connection.query(delCashRow, function (err) { if (err) throw err; });
+
         for (let i = 0; i < csvData.length; i++) {
           // console.log(csvData);
           // console.log(csvData[i]['Title']);
@@ -77,8 +80,8 @@ function insertToInstrumentTable() {
   const csv = require('csvtojson');
   const ftpFolder = require('./config/ftp.folder.json');
   let todayFolder = getTodayFolder();
-  let cashFileName = getFileName();
-  let fullCashFilePath = `./${ftpFolder.localDownloadDir}/${todayFolder}/${cashFileName[1]}`;
+  let instFileName = getFileName();
+  let fullCashFilePath = `./${ftpFolder.localDownloadDir}/${todayFolder}/${instFileName[1]}`;
 
   csv().fromFile(fullCashFilePath).then(csvData => {
     const mysql = require('mysql');
@@ -90,6 +93,9 @@ function insertToInstrumentTable() {
       if (err) console.error('error connecting: ' + err.stack);
       // connect db success
       else {
+        let delInstRow = `DELETE FROM fact_privatefund_instrument WHERE inst_date='${todayFolder}'`;
+        connection.query(delInstRow, function (err) { if (err) throw err; });
+
         for (let i = 0; i < csvData.length; i++) {
           // console.log(csvData);
           // console.log(csvData[i]['Title']);

@@ -1,6 +1,6 @@
 {
   "host": "localhost",
-  "user": "root",
-  "password": "",
-  "database": "mass_privatefund"
+  "user": "admin_setscopeu",
+  "password": "firstlife142",
+  "database": "admin_setscoped"
 }
