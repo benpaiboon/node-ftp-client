@@ -1,9 +1,10 @@
 // Init today folder
 function getTodayFolder() {
   let today = new Date();
-  let dd = today.getDate();
-  let mm = today.getMonth() + 1; //January is 0!
-  let yyyy = today.getFullYear();
+  let previousDay = new Date(today.setDate(today.getDate() - 1));
+  let dd = previousDay.getDate();
+  let mm = previousDay.getMonth() + 1; //January is 0!
+  let yyyy = previousDay.getFullYear();
   if (dd < 10) {
     dd = '0' + dd;
   }
@@ -12,8 +13,7 @@ function getTodayFolder() {
   }
 
   let dateSyntax = `${yyyy}${mm}${dd}`;
-  let todayFolder = dateSyntax - 1;
-  return todayFolder;
+  return dateSyntax;
 }
 
 // Get list of files
